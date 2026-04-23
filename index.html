@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UAIRL — Uludağ University AI Research Lab</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="data/news.js"></script>
+  <script src="data/people.js"></script>
+  <style>
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.94); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 60px;
+      transition: box-shadow 0.2s;
+    }
+    nav.scrolled { box-shadow: 0 1px 12px rgba(13,27,42,.08); }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-name { font-size: 14.5px; font-weight: 600; color: var(--navy); letter-spacing: -0.2px; }
+
+    .nav-right { display: flex; align-items: center; gap: 0.25rem; }
+    .nav-links { display: flex; list-style: none; }
+    .nav-links a {
+      display: block; padding: 0 13px; line-height: 60px;
+      font-size: 14.5px; font-weight: 500; color: var(--muted); text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--blue); border-color: var(--blue); }
+
+    /* Language Switch */
+    .lang-switch {
+      display: flex; align-items: center;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 3px; gap: 2px;
+      margin-left: 0.75rem; flex-shrink: 0;
+    }
+    .lang-btn {
+      font-family: var(--mono); font-size: 11.5px; font-weight: 500;
+      padding: 4px 10px; border-radius: 2px; border: none;
+      cursor: pointer; color: var(--muted); background: none;
+      transition: background 0.15s, color 0.15s; line-height: 1;
+    }
+    .lang-btn.active { background: var(--navy); color: #fff; }
+    .lang-btn:not(.active):hover { background: var(--border); }
+
+    /* Hamburger */
+    .hamburger {
+      display: none; flex-direction: column; justify-content: center;
+      gap: 5px; width: 36px; height: 36px;
+      background: none; border: none; cursor: pointer; padding: 4px; margin-left: 0.5rem;
+    }
+    .hamburger span {
+      display: block; height: 2px; background: var(--navy); border-radius: 1px;
+      transition: transform 0.25s, opacity 0.2s; transform-origin: center;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none; flex-direction: column;
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 0.5rem 1.5rem 1rem;
+      position: sticky; top: 60px; z-index: 99;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-size: 16px; font-weight: 500; color: var(--muted);
+      text-decoration: none; padding: 0.65rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-menu a:last-of-type { border-bottom: none; }
+    .mobile-menu a:hover { color: var(--blue); }
+    .mobile-lang-row {
+      display: flex; gap: 8px; padding: 0.75rem 0 0.3rem;
+      border-top: 1px solid var(--border); margin-top: 0.3rem;
+    }
+
+    /* Scroll Reveal */
+    .reveal { opacity:0; transform:translateY(16px); transition:opacity .45s ease,transform .45s ease; }
+    .reveal.visible { opacity:1; transform:none; }
+    .reveal-stagger > * { opacity:0; transform:translateY(12px); transition:opacity .4s ease,transform .4s ease; }
+    .reveal-stagger.visible > *:nth-child(1){ opacity:1;transform:none;transition-delay:.04s }
+    .reveal-stagger.visible > *:nth-child(2){ opacity:1;transform:none;transition-delay:.10s }
+    .reveal-stagger.visible > *:nth-child(3){ opacity:1;transform:none;transition-delay:.16s }
+    .reveal-stagger.visible > *:nth-child(4){ opacity:1;transform:none;transition-delay:.22s }
+    .reveal-stagger.visible > *:nth-child(5){ opacity:1;transform:none;transition-delay:.28s }
+    .reveal-stagger.visible > *:nth-child(6){ opacity:1;transform:none;transition-delay:.34s }
+    .reveal-stagger.visible > *:nth-child(7){ opacity:1;transform:none;transition-delay:.40s }
+
+    /* ── HERO ──
+       Arkaplan görseli: images/image_a.png
+       Değiştirmek için: background-image satırını düzenle
+       Kaldırmak için: background-image satırını sil (koyu lacivert kalır) */
+    .hero {
+      background-color: var(--navy);
+      background-image: url('images/image_a.png');
+      background-size: cover;
+      background-position: center 40%;
+      padding: 5.5rem 2rem 4.5rem;
+      position: relative; overflow: hidden;
+    }
+    /* Koyu overlay — opaklığı artırırsan görsel azalır, azaltırsan artar (0–1 arası) */
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(9, 18, 32, 0.76);
+      pointer-events: none;
+    }
+    /* Izgara deseni */
+    .hero::after {
+      content: ''; position: absolute; inset: 0; z-index: 1;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 56px 56px;
+      pointer-events: none;
+    }
+    .hero-inner { max-width: var(--max-w); margin: 0 auto; position: relative; z-index: 2; }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 12.5px; color: rgba(255,255,255,.45);
+      margin-bottom: 1.5rem; letter-spacing: .4px;
+    }
+    .hero-tag-dot { width: 6px; height: 6px; background: var(--teal); border-radius: 50%; flex-shrink: 0; }
+    .hero h1 { font-size: clamp(2.1rem, 4.5vw, 3.3rem); font-weight: 300; color: #fff; line-height: 1.12; letter-spacing: -1.5px; margin-bottom: .5rem; }
+    .hero h1 strong { font-weight: 600; }
+    .hero-sub { font-size: 14.5px; color: rgba(255,255,255,.45); font-family: var(--mono); margin-bottom: 1.5rem; }
+    .hero p { font-size: 18.5px; color: rgba(255,255,255,.8); max-width: 580px; line-height: 1.8; margin-bottom: 2rem; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 7px; }
+    .badge {
+      font-size: 13.5px; font-weight: 500; padding: 6px 13px;
+      border-radius: 3px; border: 1px solid rgba(255,255,255,.18);
+      color: rgba(255,255,255,.82); background: rgba(255,255,255,.08);
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 4rem 2rem; }
+    .section-inner { max-width: var(--max-w); margin: 0 auto; }
+    .section-label {
+      font-family: var(--mono); font-size: 12.5px; font-weight: 500;
+      color: var(--blue); letter-spacing: 1px; text-transform: uppercase; margin-bottom: .5rem;
+    }
+    .section-title { font-size: 2rem; font-weight: 600; color: var(--navy); letter-spacing: -.5px; margin-bottom: 1.8rem; }
+    .divider { border: none; border-top: 1px solid var(--border); }
+
+    /* ── NEWS ── */
+    #news { background: var(--white); }
+    .news-list { display: flex; flex-direction: column; }
+    .news-item { display: flex; gap: 1.2rem; align-items: flex-start; padding: 1.15rem 0; border-bottom: 1px solid var(--border); }
+    .news-item:last-child { border-bottom: none; }
+    .news-date { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 90px; padding-top: 3px; }
+    .news-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); margin-top: 9px; flex-shrink: 0; }
+    .news-text { font-size: 16.5px; color: var(--text); line-height: 1.65; }
+    .news-text strong { font-weight: 600; }
+    .tag-new { display: inline-block; font-size: 11.5px; font-weight: 600; background: var(--teal-lt); color: var(--teal); padding: 2px 7px; border-radius: 2px; margin-left: 6px; vertical-align: middle; }
+
+    /* ── RESEARCH ──
+       Her kartın üstünde bir görsel var.
+       Görseli değiştirmek için ilgili kartın style="background-image:url(...)" kısmını düzenle.
+       Görseli kaldırmak için <div class="rc-thumb"> satirini tamamen sil. */
+    #research { background: var(--bg); }
+    .research-grid {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;           /* scrollbar için küçük boşluk */
+    }
+    .research-grid::-webkit-scrollbar { height: 5px; }
+    .research-grid::-webkit-scrollbar-track { background: var(--border); border-radius: 99px; }
+    .research-grid::-webkit-scrollbar-thumb { background: var(--white); border-radius: 99px; }
+    .research-card { flex: 0 0 270px; scroll-snap-align: start; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: box-shadow .2s, transform .2s; }
+    .research-card:hover { box-shadow: 0 4px 18px rgba(13,27,42,.09); transform: translateY(-2px); }
+    /* Kart üst görseli */
+    .rc-thumb {
+      height: 130px;
+      background-size: cover; background-position: center;
+      position: relative;
+    }
+    .rc-thumb::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(13,27,42,.15), rgba(13,27,42,.55));
+    }
+    .rc-body { padding: 1.4rem 1.5rem 1.5rem; }
+    .rc-body h3 { font-size: 16.5px; font-weight: 600; margin-bottom: .45rem; color: var(--navy); }
+    .rc-body p  { font-size: 15px; color: var(--muted); line-height: 1.65; }
+
+    /* ── PROJECTS ── */
+    #projects { background: var(--white); }
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .project-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; text-decoration: none; display: flex; flex-direction: column; transition: box-shadow .2s, transform .2s; }
+    .project-card:hover { box-shadow: 0 4px 18px rgba(13,27,42,.09); transform: translateY(-2px); }
+    .project-thumb { height: 155px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .project-thumb-bg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 72px; opacity: .1; user-select: none; }
+    .project-thumb-label { font-family: var(--mono); font-size: 12.5px; font-weight: 500; padding: 5px 11px; border-radius: var(--radius); z-index: 1; }
+    .project-body { padding: 1.2rem 1.3rem 1.4rem; flex: 1; display: flex; flex-direction: column; gap: .5rem; }
+    .project-type { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--blue); letter-spacing: .6px; text-transform: uppercase; }
+    .project-card h3 { font-size: 16px; font-weight: 600; color: var(--navy); line-height: 1.4; }
+    .project-card p  { font-size: 15px; color: var(--muted); line-height: 1.65; flex: 1; }
+    .project-footer { display: flex; align-items: center; justify-content: space-between; padding-top: .75rem; border-top: 1px solid var(--border); margin-top: auto; }
+    .project-year { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+    .project-arrow { width: 28px; height: 28px; border-radius: var(--radius); background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: background .15s; }
+    .project-card:hover .project-arrow { background: var(--blue); }
+
+    /* ── PUBLICATIONS ── */
+    #publications { background: var(--bg); }
+    .pub-list { display: flex; flex-direction: column; gap: 12px; }
+    .pub-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; display: flex; gap: 1.2rem; align-items: flex-start; }
+    .pub-year { font-family: var(--mono); font-size: 13.5px; color: var(--muted); min-width: 42px; padding-top: 2px; }
+    .pub-title { font-size: 16px; font-weight: 500; color: var(--navy); margin-bottom: 5px; }
+    .pub-authors { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+    .pub-venue { display: inline-block; font-size: 13px; font-weight: 500; background: var(--blue-lt); color: var(--blue); padding: 2px 9px; border-radius: 2px; }
+
+    /* ── PEOPLE ── */
+    #people { background: var(--white); }
+    .people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-bottom: 1rem; }
+    /* Kişi kartları — tıklanabilir */
+    .person-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.4rem 1rem; text-align: center;
+      cursor: pointer;
+      transition: box-shadow .2s, transform .2s, border-color .2s;
+    }
+    .person-card:hover { box-shadow: 0 4px 18px rgba(13,27,42,.1); transform: translateY(-2px); border-color: var(--blue); }
+    .person-avatar { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto .8rem; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: #fff; overflow: hidden; }
+    .person-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+    .person-card h4 { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+    .person-card p  { font-size: 13.5px; color: var(--muted); }
+    .person-pi .person-avatar { width: 74px; height: 74px; font-size: 23px; }
+    .pi-badge { font-size: 11.5px; font-weight: 600; background: var(--navy); color: #fff; padding: 2px 9px; border-radius: 2px; display: inline-block; margin-bottom: 6px; }
+    .people-section-title { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .5px; text-transform: uppercase; margin: 2rem 0 .9rem; }
+    /* PI grid: tek kart olduğu için genişliği sınırla */
+    #piGrid { max-width: 200px; margin-bottom: 2rem; }
+
+    /* ── KİŞİ MODAL ── */
+    .person-modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(9,18,32,.6); backdrop-filter: blur(5px);
+      align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .person-modal-overlay.open { display: flex; }
+    .person-modal {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem;
+      max-width: 380px; width: 100%; position: relative;
+    }
+    .person-modal-close {
+      position: absolute; top: .9rem; right: .9rem;
+      background: none; border: none; cursor: pointer;
+      font-size: 18px; color: var(--muted); line-height: 1; padding: 5px;
+      border-radius: 2px; transition: color .15s, background .15s;
+    }
+    .person-modal-close:hover { color: var(--text); background: var(--bg); }
+    .person-modal-avatar {
+      width: 88px; height: 88px; border-radius: 50%;
+      margin: 0 auto 1.1rem; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 600; color: #fff; overflow: hidden;
+    }
+    .person-modal-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+    .person-modal-name { font-size: 19px; font-weight: 600; color: var(--navy); text-align: center; margin-bottom: 4px; }
+    .person-modal-role { font-size: 13.5px; color: var(--muted); text-align: center; font-family: var(--mono); margin-bottom: 1.2rem; }
+    .person-modal-bio { font-size: 15px; color: var(--text); line-height: 1.7; margin-bottom: 1.2rem; }
+    .person-modal-links { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .person-modal-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13.5px; font-weight: 500; padding: 7px 14px;
+      border-radius: var(--radius); border: 1px solid var(--border);
+      color: var(--navy); text-decoration: none;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    .person-modal-link:hover { background: var(--bg); border-color: var(--blue); color: var(--blue); }
+    .person-modal-link svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    /* ── CONTACT ── */
+    #contact { background: var(--navy); color: rgba(255,255,255,.78); }
+    #contact .section-label { color: var(--teal); }
+    #contact .section-title { color: #fff; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .contact-item { display: flex; flex-direction: column; gap: 5px; }
+    .contact-item label { font-size: 12.5px; font-family: var(--mono); color: rgba(255,255,255,.38); letter-spacing: 1px; text-transform: uppercase; }
+    .contact-item span  { font-size: 16px; color: rgba(255,255,255,.85); }
+    .contact-item a     { color: var(--teal); text-decoration: none; font-size: 16px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+      .lang-switch { display: none; }
+      .hamburger { display: flex; }
+      section { padding: 2.75rem 1.25rem; }
+      .hero { padding: 3rem 1.25rem; }
+      .contact-grid { grid-template-columns: 1fr; }
+      #piGrid { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a class="nav-brand" href="#">
+    <img src="images/buu_logo.png" alt="Uludag Logo" width="46" height="auto">
+    <span class="nav-name">AI Research Lab</span>
+  </a>
+  <div class="nav-right">
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#news"         data-i18n="nav.news">News</a></li>
+      <li><a href="#research"     data-i18n="nav.research">Research</a></li>
+      <li><a href="#projects"     data-i18n="nav.projects">Projects</a></li>
+      <li><a href="#publications" data-i18n="nav.publications">Publications</a></li>
+      <li><a href="#people"       data-i18n="nav.people">People</a></li>
+      <li><a href="#contact"      data-i18n="nav.contact">Contact</a></li>
+    </ul>
+    <div class="lang-switch">
+      <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="btnTR" onclick="setLang('tr')">TR</button>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobil Drawer -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#news"         onclick="closeMobile()" data-i18n="nav.news">News</a>
+  <a href="#research"     onclick="closeMobile()" data-i18n="nav.research">Research</a>
+  <a href="#projects"     onclick="closeMobile()" data-i18n="nav.projects">Projects</a>
+  <a href="#publications" onclick="closeMobile()" data-i18n="nav.publications">Publications</a>
+  <a href="#people"       onclick="closeMobile()" data-i18n="nav.people">People</a>
+  <a href="#contact"      onclick="closeMobile()" data-i18n="nav.contact">Contact</a>
+  <div class="mobile-lang-row">
+    <button class="lang-btn" id="mobileBtnEN" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="mobileBtnTR" onclick="setLang('tr')">TR</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">
+      <span class="hero-tag-dot"></span>
+      Bursa Uludağ University — Bursa, Turkey
+    </div>
+    <h1><strong data-i18n="hero.title1">AI Research</strong><br><span data-i18n="hero.title2">Laboratory</span></h1>
+    <div class="hero-sub">Bursa Uludağ University &nbsp;&middot;&nbsp; <span data-i18n="hero.dept">Dept. of Computer Engineering</span></div>
+    <p data-i18n="hero.desc">We pursue fundamental and applied research at the intersection of machine learning, DEVOps, and wireless network analysis. Our goal is to develop intelligent systems that understand, reason, and act in complex real-world environments.</p>
+    <div class="hero-badges">
+      <span class="badge" data-i18n="hero.badge1">DEVOps</span>
+      <span class="badge" data-i18n="hero.badge2">Machine Learning &amp; Deep Learning</span>
+      <span class="badge" data-i18n="hero.badge3">Wireless Networks</span>
+	  <span class="badge" data-i18n="hero.badge4">MLOps</span>
+    </div>
+  </div>
+</header>
+
+<!-- NEWS -->
+<section id="news">
+  <div class="section-inner">
+    <div class="section-label reveal" data-i18n="news.label">Latest</div>
+    <div class="section-title reveal" data-i18n="news.title">News</div>
+    <div class="news-list reveal-stagger" id="newsList">
+      <!-- data/news.js'den otomatik doldurulur -->
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- RESEARCH
+     Kart görselleri: image_b → DEVOps, image_d → ML, image_c → Wireless Networks, images_e → MLOps
+     Değiştirmek için style içindeki url('...') kısmını düzenle -->
+<section id="research">
+  <div class="section-inner">
+    <div class="section-label reveal" data-i18n="research.label">What we work on</div>
+    <div class="section-title reveal"  data-i18n="research.title">Research Areas</div>
+    <div class="research-grid reveal-stagger">
+
+      <div class="research-card">
+        <div class="rc-thumb" style="background-image:url('images/image_b.png')"></div>
+        <div class="rc-body">
+          <h3 data-i18n="research.nlp.title">DEVOps</h3>
+          <p  data-i18n="research.nlp.desc">We integrate modern DevOps practices into AI processes to ensure the sustainability and scalability of our projects.</p>
+        </div>
+      </div>
+
+      <div class="research-card">
+        <div class="rc-thumb" style="background-image:url('images/image_d.png')"></div>
+        <div class="rc-body">
+          <h3 data-i18n="research.ml.title">Machine Learning &amp; Deep Learning</h3>
+          <p  data-i18n="research.ml.desc">Designing scalable learning algorithms — from representation learning to large-scale neural architectures and efficient fine-tuning.</p>
+        </div>
+      </div>
+
+      <div class="research-card">
+        <div class="rc-thumb" style="background-image:url('images/image_c.png')"></div>
+        <div class="rc-body">
+          <h3 data-i18n="research.net.title">Wireless Networks</h3>
+          <p  data-i18n="research.net.desc">Graph-based methods for knowledge representation and inference over multi-type, multi-relational network structures.</p>
+        </div>
+      </div>
+
+      <div class="research-card">
+        <div class="rc-thumb" style="background-image:url('images/images_e.png')"></div>
+        <div class="rc-body">
+          <h3 data-i18n="research.mlops.title">MLOps</h3>
+          <p  data-i18n="research.mlops.desc">Building end-to-end machine learning pipelines with automated monitoring, versioning, and deployment for reproducible, production-ready AI systems.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-inner">
+    <div class="section-label reveal" data-i18n="projects.label">Active &amp; completed</div>
+    <div class="section-title reveal"  data-i18n="projects.title">Projects</div>
+    <div class="projects-grid reveal-stagger">
+
+      <a class="project-card" href="projects/mlops-ocean/index.html">
+        <div class="project-thumb" style="background:linear-gradient(135deg,#0d1b2a,#1a3a5c)">
+          <div class="project-thumb-bg">🌊</div>
+          <span class="project-thumb-label" style="background:rgba(26,115,232,0.25);color:#7bb8ff;border:1px solid rgba(26,115,232,0.4)">MLOps</span>
+          <hr/>
+          <span class="project-thumb-label" style="background:rgba(26,115,232,0.25);color:#7bb8ff;border:1px solid rgba(26,115,232,0.4)">Active Learning</span>
+        </div>
+        <div class="project-body">
+          <div class="project-type" data-i18n="projects.type.journal">Journal Paper</div>
+          <h3 data-i18n="projects.p1.title">MLOps-Driven Prediction of Ocean Oxygen Saturation</h3>
+          <p  data-i18n="projects.p1.desc">End-to-end MLOps framework for predicting ocean oxygen saturation levels, published in Future Generation Computer Systems.</p>
+          <div class="project-footer">
+            <span class="project-year">2026</span>
+            <div class="project-arrow">→</div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- PUBLICATIONS -->
+<section id="publications">
+  <div class="section-inner">
+    <div class="section-label reveal" data-i18n="pub.label">Selected works</div>
+    <div class="section-title reveal"  data-i18n="pub.title">Publications</div>
+    <div class="pub-list reveal-stagger">
+      <div class="pub-item">
+        <span class="pub-year">2026</span>
+        <div>
+          <div class="pub-title">MLOps-Driven Prediction of Ocean Oxygen Saturation: Design and Practical Implementation</div>
+          <div class="pub-authors">Bozkır R., Cicioğlu M., Çalhan A.</div>
+          <span class="pub-venue">Future Generation Computer Systems (SCI-Expanded)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- PEOPLE — data/people.js'den otomatik doldurulur -->
+<section id="people">
+  <div class="section-inner">
+    <div class="section-label reveal" data-i18n="people.label">The team</div>
+    <div class="section-title reveal"  data-i18n="people.title">People</div>
+
+    <div class="people-section-title" data-i18n="people.pi">Principal Investigator</div>
+    <div class="people-grid reveal-stagger" id="piGrid"></div>
+
+    <div class="people-section-title" data-i18n="people.phd">PhD Students</div>
+    <div class="people-grid reveal-stagger" id="phdGrid"></div>
+
+    <div class="people-section-title" data-i18n="people.msc">MSc Students</div>
+    <div class="people-grid reveal-stagger" id="mscGrid"></div>
+
+    <div class="people-section-title" data-i18n="people.bsc">BSc Students</div>
+    <div class="people-grid reveal-stagger" id="bscGrid"></div>
+  </div>
+</section>
+
+<!-- KİŞİ MODAL — JS tarafından doldurulur, doğrudan düzenleme gerekmez -->
+<div class="person-modal-overlay" id="personModalOverlay" role="dialog" aria-modal="true">
+  <div class="person-modal" id="personModal">
+    <button class="person-modal-close" id="personModalClose" aria-label="Close">✕</button>
+    <div class="person-modal-avatar" id="modalAvatar"></div>
+    <div class="person-modal-name"   id="modalName"></div>
+    <div class="person-modal-role"   id="modalRole"></div>
+    <div class="person-modal-bio"    id="modalBio"></div>
+    <div class="person-modal-links"  id="modalLinks"></div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="contact.label">Reach us</div>
+    <div class="section-title" data-i18n="contact.title">Contact</div>
+    <div class="contact-grid reveal-stagger">
+      <div class="contact-item">
+        <label data-i18n="contact.address">Address</label>
+        <span><span data-i18n="people.dept_short">Dept. of Computer Engineering</span><br>Bursa Uludağ University<br>Bursa, Turkey</span>
+      </div>
+      <div class="contact-item">
+        <label>Email</label>
+        <a>uludagyzlab@gmail.com</a>
+      </div>
+      <div class="contact-item">
+        <label>GitHub</label>
+        <a>https://github.com/uludag-yz-lab</a>
+      </div>
+      <div class="contact-item">
+        <label data-i18n="contact.location">Location</label>
+        <span>Bursa, Turkey</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════ JAVASCRIPT ════════════════════════════ -->
+<script>
+
+/* ══════════════════════════════════════════════════════════
+   1. TRANSLATIONS
+   ══════════════════════════════════════════════════════════ */
+const i18n = {
+  en: {
+    "nav.news":"News","nav.research":"Research","nav.projects":"Projects",
+    "nav.publications":"Publications","nav.people":"People","nav.contact":"Contact",
+
+    "hero.title1":"AI Research","hero.title2":"Laboratory",
+    "hero.dept":"Dept. of Computer Engineering",
+    "hero.desc":"We pursue fundamental and applied research at the intersection of machine learning, DEVOps, and wireless network analysis. Our goal is to develop intelligent systems that understand, reason, and act in complex real-world environments.",
+    "hero.badge1":"DEVOps","hero.badge2":"Machine Learning & Deep Learning","hero.badge3":"Wireless Networks","hero.badge4":"MLOps",
+
+    "news.label":"Latest","news.title":"News",
+
+    "research.label":"What we work on","research.title":"Research Areas",
+    "research.nlp.title":"DEVOps",
+    "research.nlp.desc":"We integrate modern DevOps practices into AI processes to ensure the sustainability and scalability of our projects.",
+    "research.ml.title":"Machine Learning & Deep Learning",
+    "research.ml.desc":"Designing scalable learning algorithms — from representation learning to large-scale neural architectures and efficient fine-tuning.",
+    "research.net.title":"Wireless Networks",
+    "research.net.desc":"Graph-based methods for knowledge representation and inference over multi-type, multi-relational network structures.",
+    "research.mlops.title":"MLOps",
+    "research.mlops.desc":"Building end-to-end machine learning pipelines with automated monitoring, versioning, and deployment for reproducible, production-ready AI systems.",
+
+    "projects.label":"Active & completed","projects.title":"Projects",
+    "projects.type.journal":"Journal Paper",
+    "projects.p1.title":"MLOps-Driven Prediction of Ocean Oxygen Saturation",
+    "projects.p1.desc":"End-to-end MLOps framework for predicting ocean oxygen saturation levels, published in Future Generation Computer Systems.",
+
+    "pub.label":"Selected works","pub.title":"Publications",
+
+    "people.label":"The team","people.title":"People",
+    "people.pi":"Principal Investigator",
+    "people.phd":"PhD Students","people.msc":"MSc Students","people.bsc":"BSc Students",
+    "people.dept_short":"Dept. of Computer Engineering",
+
+    "contact.label":"Reach us","contact.title":"Contact",
+    "contact.address":"Address","contact.location":"Location",
+  },
+  tr: {
+    "nav.news":"Haberler","nav.research":"Araştırma","nav.projects":"Projeler",
+    "nav.publications":"Yayınlar","nav.people":"Ekip","nav.contact":"İletişim",
+
+    "hero.title1":"Yapay Zeka Araştırma","hero.title2":"Laboratuvarı",
+    "hero.dept":"Bilgisayar Mühendisliği Bölümü",
+    "hero.desc":"Makine öğrenmesi, DEVOps ve kablosuz ağ analizi kesişiminde temel ve uygulamalı araştırmalar yürütüyoruz. Hedefimiz, karmaşık gerçek dünya ortamlarında anlayan, akıl yürüten ve harekete geçen zeki sistemler geliştirmektir.",
+    "hero.badge1":"DEVOps","hero.badge2":"Makine Öğrenmesi ve Derin Öğrenme","hero.badge3":"Kablosuz Ağlar","hero.badge4":"MLOps",
+
+    "news.label":"Son Gelişmeler","news.title":"Haberler",
+
+    "research.label":"Çalışma Alanlarımız","research.title":"Araştırma Alanları",
+    "research.nlp.title":"DEVOps",
+    "research.nlp.desc":"Projelerimizin sürdürülebilirliğini ve ölçeklenebilirliğini sağlamak için modern DevOps pratiklerini AI süreçlerine entegre ediyoruz.",
+    "research.ml.title":"Makine Öğrenmesi ve Derin Öğrenme",
+    "research.ml.desc":"Temsil öğrenmesinden büyük ölçekli sinir mimarilerine ve verimli ince ayara kadar ölçeklenebilir öğrenme algoritmaları tasarlıyoruz.",
+    "research.net.title":"Kablosuz Ağlar",
+    "research.net.desc":"Çok tipli, çok ilişkili ağ yapıları üzerinde bilgi temsili ve çıkarım için graf tabanlı yöntemler geliştiriyoruz.",
+    "research.mlops.title":"MLOps",
+    "research.mlops.desc":"Üretim ortamına hazır, tekrarlanabilir yapay zeka sistemleri için otomatik izleme, versiyonlama ve dağıtım süreçleriyle uçtan uca makine öğrenmesi hatları kuruyoruz.",
+
+    "projects.label":"Aktif ve tamamlananlar","projects.title":"Projeler",
+    "projects.type.journal":"Dergi Makalesi",
+    "projects.p1.title":"MLOps Odaklı Okyanus Oksijen Doygunluğu Tahmini",
+    "projects.p1.desc":"Okyanus oksijen doygunluk seviyelerini tahmin etmek için uçtan uca MLOps çerçevesi, Future Generation Computer Systems'da yayınlandı.",
+
+    "pub.label":"Seçili Çalışmalar","pub.title":"Yayınlar",
+
+    "people.label":"Ekibimiz","people.title":"Ekip",
+    "people.pi":"Araştırma Grubu Lideri",
+    "people.phd":"Doktora Öğrencileri","people.msc":"Yüksek Lisans Öğrencileri","people.bsc":"Lisans Öğrencileri",
+    "people.dept_short":"Bilgisayar Mühendisliği Bölümü",
+
+    "contact.label":"Bize Ulaşın","contact.title":"İletişim",
+    "contact.address":"Adres","contact.location":"Konum",
+  }
+};
+
+/* ══════════════════════════════════════════════════════════
+   2. DİL UYGULAMA
+   ══════════════════════════════════════════════════════════ */
+let currentLang = localStorage.getItem('lang') || 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang][key] !== undefined) el.textContent = i18n[lang][key];
+  });
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    const isEN = btn.id === 'btnEN' || btn.id === 'mobileBtnEN';
+    btn.classList.toggle('active', (lang === 'en' && isEN) || (lang === 'tr' && !isEN));
+  });
+
+  if (window._newsData) renderNews(window._newsData, lang);
+  renderPeople(lang);
+}
+
+/* ══════════════════════════════════════════════════════════
+   3. NEWS — data/news.js'den gelir. Yeni haber için news.js'i düzenle.
+   ══════════════════════════════════════════════════════════ */
+function renderNews(data, lang) {
+  const container = document.getElementById('newsList');
+  const newLabel = lang === 'tr' ? 'YENİ' : 'NEW';
+  container.innerHTML = data.map((item, i) => {
+    const loc = item[lang];
+    const newTag = (i === 0 && item.highlight)
+      ? ` <span class="tag-new">${newLabel}</span>` : '';
+    return `
+      <div class="news-item">
+        <span class="news-date">${item.date}</span>
+        <div class="news-dot"></div>
+        <div class="news-text"><strong>${loc.title}</strong> — ${loc.text}${newTag}</div>
+      </div>`;
+  }).join('');
+}
+
+window._newsData = newsData;
+renderNews(newsData, currentLang);
+
+/* ══════════════════════════════════════════════════════════
+   4. PEOPLE — data/people.js'den gelir. Kişi bilgileri için people.js'i düzenle.
+   ══════════════════════════════════════════════════════════ */
+
+/* isim → kişi objesi arama tablosu */
+const personLookup = {};
+try {
+  [...peopleData.pi, ...peopleData.phd, ...peopleData.msc, ...peopleData.bsc].forEach(p => {
+    personLookup[p.name] = p;
+  });
+} catch(e) {
+  console.warn('people.js yüklenemedi:', e);
+}
+
+function personCardHTML(person, lang, isPI) {
+  const avatarInner = person.photo
+    ? `<img src="${person.photo}" alt="${person.name}">`
+    : person.initials;
+  const avatarBg = person.photo ? '' : `style="background:${person.color}"`;
+  const piLabel  = isPI ? `<span class="pi-badge">P.I.</span>` : '';
+
+  return `
+    <div class="person-card${isPI ? ' person-pi' : ''}"
+         data-person-name="${person.name}"
+         role="button" tabindex="0"
+         aria-label="${person.name}">
+      <div class="person-avatar" ${avatarBg}>${avatarInner}</div>
+      ${piLabel}
+      <h4>${person.name}</h4>
+      <p>${person.role[lang]}</p>
+    </div>`;
+}
+
+function renderPeople(lang) {
+  document.getElementById('piGrid').innerHTML =
+    peopleData.pi.map(p => personCardHTML(p, lang, true)).join('');
+  document.getElementById('phdGrid').innerHTML =
+    peopleData.phd.map(p => personCardHTML(p, lang, false)).join('');
+  document.getElementById('mscGrid').innerHTML =
+    peopleData.msc.map(p => personCardHTML(p, lang, false)).join('');
+  document.getElementById('bscGrid').innerHTML =
+    peopleData.bsc.map(p => personCardHTML(p, lang, false)).join('');
+
+  document.querySelectorAll('.person-card[data-person-name]').forEach(card => {
+    card.addEventListener('click',   () => openPersonModal(card.dataset.personName));
+    card.addEventListener('keydown', e => { if (e.key === 'Enter') openPersonModal(card.dataset.personName); });
+  });
+
+  /* scroll reveal yeniden tetikle */
+  if (typeof observer !== 'undefined') {
+    ['piGrid', 'phdGrid', 'mscGrid', 'bscGrid'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('visible');
+      observer.observe(el);
+    });
+  }
+}
+
+/* ── Kişi modalını aç ── */
+function openPersonModal(name) {
+  const person = personLookup[name];
+  if (!person) return;
+  const lang = currentLang;
+
+  /* Avatar */
+  const avatarEl = document.getElementById('modalAvatar');
+  if (person.photo) {
+    avatarEl.innerHTML = `<img src="${person.photo}" alt="${person.name}">`;
+    avatarEl.style.background = 'transparent';
+  } else {
+    avatarEl.textContent   = person.initials;
+    avatarEl.style.background = person.color;
+  }
+
+  document.getElementById('modalName').textContent = person.name;
+  document.getElementById('modalRole').textContent = person.role[lang];
+
+  /* Biyografi */
+  const bio = person.bio[lang];
+  const bioEl = document.getElementById('modalBio');
+  bioEl.textContent   = bio;
+  bioEl.style.display = bio ? 'block' : 'none';
+
+  /* Linkler (sadece null olmayanlar gösterilir) */
+  const links = [];
+  if (person.linkedin) links.push(
+    `<a class="person-modal-link" href="${person.linkedin}" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7H10v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+      LinkedIn
+    </a>`
+  );
+  if (person.scholar) links.push(
+    `<a class="person-modal-link" href="${person.scholar}" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      Google Scholar
+    </a>`
+  );
+  if (person.email) links.push(
+    `<a class="person-modal-link" href="mailto:${person.email}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Email
+    </a>`
+  );
+  const linksEl = document.getElementById('modalLinks');
+  linksEl.innerHTML   = links.join('');
+  linksEl.style.display = links.length ? 'flex' : 'none';
+
+  document.getElementById('personModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+/* ── Modalı kapat ── */
+function closePersonModal() {
+  document.getElementById('personModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('personModalClose').addEventListener('click', closePersonModal);
+document.getElementById('personModalOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closePersonModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePersonModal(); });
+
+/* ══════════════════════════════════════════════════════════
+   5. SCROLL REVEAL — observer önce tanımlanmalı ki
+      renderPeople() çağrıldığında hazır olsun
+   ══════════════════════════════════════════════════════════ */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+  });
+}, { threshold: 0.10 });
+
+document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => observer.observe(el));
+
+/* ══════════════════════════════════════════════════════════
+   6. INIT LANG
+   ══════════════════════════════════════════════════════════ */
+setLang(currentLang);
+
+/* ══════════════════════════════════════════════════════════
+   7. NAVBAR scroll gölgesi + aktif link
+   ══════════════════════════════════════════════════════════ */
+const nav        = document.getElementById('mainNav');
+const navAnchors = document.querySelectorAll('.nav-links a');
+const allSections= document.querySelectorAll('section[id]');
+
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 10);
+  let current = '';
+  allSections.forEach(sec => { if (window.scrollY >= sec.offsetTop - 90) current = sec.id; });
+  navAnchors.forEach(a => { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
+}, { passive: true });
+
+/* ══════════════════════════════════════════════════════════
+   8. HAMBURGER
+   ══════════════════════════════════════════════════════════ */
+const hamburger  = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', () => {
+  const isOpen = mobileMenu.classList.toggle('open');
+  hamburger.classList.toggle('open', isOpen);
+  hamburger.setAttribute('aria-expanded', String(isOpen));
+});
+function closeMobile() {
+  mobileMenu.classList.remove('open');
+  hamburger.classList.remove('open');
+  hamburger.setAttribute('aria-expanded', 'false');
+}
+
+</script>
+</body>
+</html>

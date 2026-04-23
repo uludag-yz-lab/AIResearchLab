@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MLOps-Driven Prediction of Ocean Oxygen Saturation — UAIRL</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../style.css"/>
+  <style>
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.94); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 60px;
+      transition: box-shadow 0.2s;
+    }
+    nav.scrolled { box-shadow: 0 1px 12px rgba(13,27,42,.08); }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-name { font-size: 14.5px; font-weight: 600; color: var(--navy); letter-spacing: -0.2px; }
+
+    .nav-right { display: flex; align-items: center; gap: 0.5rem; }
+
+    .back-link {
+      font-size: 14.5px; font-weight: 500; color: var(--muted); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--blue); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    /* Language Switch */
+    .lang-switch {
+      display: flex; align-items: center;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 3px; gap: 2px;
+      margin-left: 0.75rem; flex-shrink: 0;
+    }
+    .lang-btn {
+      font-family: var(--mono); font-size: 11.5px; font-weight: 500;
+      padding: 4px 10px; border-radius: 2px; border: none;
+      cursor: pointer; color: var(--muted); background: none;
+      transition: background 0.15s, color 0.15s;
+      line-height: 1;
+    }
+    .lang-btn.active { background: var(--navy); color: #fff; }
+    .lang-btn:not(.active):hover { background: var(--border); }
+
+    /* ── HERO ── */
+    .project-hero {
+      background: linear-gradient(135deg, #0d1b2a, #1a3a5c);
+      padding: 4rem 2rem 3rem; position: relative; overflow: hidden;
+    }
+    .project-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 56px 56px;
+      pointer-events: none;
+    }
+    .project-hero-inner { max-width: var(--max-w); margin: 0 auto; position: relative; }
+    .project-type-tag {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 12.5px; font-weight: 500;
+      color: rgba(255,255,255,.45); margin-bottom: 1.2rem;
+    }
+    .project-type-tag-dot { width: 6px; height: 6px; background: var(--teal); border-radius: 50%; flex-shrink: 0; }
+    .project-hero h1 {
+      font-size: clamp(1.6rem, 3.5vw, 2.3rem); font-weight: 600;
+      color: #fff; line-height: 1.25; letter-spacing: -0.5px; margin-bottom: 1.1rem;
+    }
+    .project-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .project-meta-item { display: flex; flex-direction: column; gap: 3px; }
+    .project-meta-label { font-family: var(--mono); font-size: 11.5px; color: rgba(255,255,255,.4); letter-spacing: 1px; text-transform: uppercase; }
+    .project-meta-value { font-size: 15.5px; color: rgba(255,255,255,.88); }
+    .project-meta-value a { color: var(--teal); text-decoration: none; }
+    .project-meta-value a:hover { text-decoration: underline; }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .project-tag {
+      font-size: 13px; font-weight: 500; padding: 5px 12px; border-radius: 3px;
+      border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.07);
+    }
+
+    /* ── CONTENT ── */
+    .content-section { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+    .content-section + .content-section { padding-top: 0; }
+
+    .section-label { font-family: var(--mono); font-size: 12.5px; font-weight: 500; color: var(--blue); letter-spacing: 1px; text-transform: uppercase; margin-bottom: .5rem; }
+    .section-title { font-size: 1.65rem; font-weight: 600; color: var(--navy); letter-spacing: -0.3px; margin-bottom: 1.2rem; }
+
+    .content-text { font-size: 17px; color: var(--text); line-height: 1.85; }
+    .content-text p { margin-bottom: 1rem; }
+
+    /* Info Cards */
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+    .info-card {
+      background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 4px;
+    }
+    .info-card-label { font-family: var(--mono); font-size: 11.5px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    .info-card-value { font-size: 16px; font-weight: 500; color: var(--navy); }
+    .info-card-value a { color: var(--blue); text-decoration: none; }
+    .info-card-value a:hover { text-decoration: underline; }
+
+    /* Author list */
+    .author-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 2rem; }
+    .author-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 7px 14px 7px 7px; font-size: 15px; color: var(--navy); font-weight: 500;
+    }
+    .author-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: #fff;
+    }
+
+    /* Highlights */
+    .highlight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 1.5rem 0; }
+    .highlight-card {
+      background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.3rem; text-align: center;
+    }
+    .highlight-icon { font-size: 28px; margin-bottom: .5rem; }
+    .highlight-value { font-size: 21px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+    .highlight-desc { font-size: 14px; color: var(--muted); }
+
+    /* Back to projects */
+    .bottom-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 15.5px; font-weight: 500; color: var(--blue); text-decoration: none;
+      margin-top: 1rem; transition: gap 0.2s;
+    }
+    .bottom-back:hover { gap: 12px; }
+    .bottom-back svg { width: 18px; height: 18px; }
+
+    /* Scroll Reveal */
+    .reveal { opacity:0; transform:translateY(16px); transition:opacity .45s ease,transform .45s ease; }
+    .reveal.visible { opacity:1; transform:none; }
+
+    /* ── FOOTER ── */
+    .project-footer-bar {
+      background: var(--navy); padding: 2rem; text-align: center;
+      font-size: 14px; color: rgba(255,255,255,.45);
+    }
+    .project-footer-bar a { color: var(--teal); text-decoration: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .project-hero { padding: 3rem 1.25rem 2rem; }
+      .content-section { padding: 2rem 1.25rem; }
+      .project-meta { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a class="nav-brand" href="../../index.html">
+    <img src="../../images/buu_logo.png" alt="Uludag Logo" width="46" height="auto">
+    <span class="nav-name">AI Research Lab</span>
+  </a>
+  <div class="nav-right">
+    <a class="back-link" href="../../index.html#projects">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span data-i18n="nav.back">Back to Projects</span>
+    </a>
+    <div class="lang-switch">
+      <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="btnTR" onclick="setLang('tr')">TR</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="project-hero">
+  <div class="project-hero-inner">
+    <div class="project-type-tag">
+      <span class="project-type-tag-dot"></span>
+      <span data-i18n="project.type">SCI-Expanded Journal Paper</span>
+    </div>
+    <h1 data-i18n="project.title">MLOps-Driven Prediction of Ocean Oxygen Saturation: Design and Practical Implementation</h1>
+    <div class="project-meta">
+      <div class="project-meta-item">
+        <span class="project-meta-label" data-i18n="project.journal_label">Journal</span>
+        <span class="project-meta-value">Future Generation Computer Systems</span>
+      </div>
+      <div class="project-meta-item">
+        <span class="project-meta-label" data-i18n="project.year_label">Year</span>
+        <span class="project-meta-value">2026</span>
+      </div>
+      <div class="project-meta-item">
+        <span class="project-meta-label">DOI</span>
+        <span class="project-meta-value"><a href="https://doi.org/10.1016/j.future.2026.108502" target="_blank" rel="noopener">10.1016/j.future.2026.108502</a></span>
+      </div>
+      <div class="project-meta-item">
+        <span class="project-meta-label" data-i18n="project.index_label">Indexed In</span>
+        <span class="project-meta-value">SCI-Expanded, Scopus</span>
+      </div>
+    </div>
+    <div class="project-tags">
+      <span class="project-tag">MLOps</span>
+      <span class="project-tag">Machine Learning</span>
+      <span class="project-tag">Ocean Science</span>
+      <span class="project-tag">Oxygen Saturation</span>
+      <span class="project-tag">CI/CD Pipeline</span>
+    </div>
+  </div>
+</header>
+
+<!-- AUTHORS -->
+<div class="content-section reveal">
+  <div class="section-label" data-i18n="project.authors_label">Authors</div>
+  <div class="section-title" data-i18n="project.authors_title">Research Team</div>
+  <div class="author-list">
+    <div class="author-chip">
+      <div class="author-avatar" style="background:#1a73e8">RB</div>
+      Ramazan Bozkır
+    </div>
+    <div class="author-chip">
+      <div class="author-avatar" style="background:var(--navy)">MC</div>
+      Murtaza Cicioğlu
+    </div>
+    <div class="author-chip">
+      <div class="author-avatar" style="background:#00b89c">AÇ</div>
+      Ali Çalhan
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="content-section reveal">
+  <div class="section-label" data-i18n="project.overview_label">Overview</div>
+  <div class="section-title" data-i18n="project.overview_title">About This Research</div>
+  <div class="content-text">
+    <p data-i18n="project.overview_p1">This study presents a comprehensive MLOps-driven framework for predicting ocean oxygen saturation levels using machine learning. The research addresses the critical need for accurate and automated environmental monitoring systems in marine ecosystems.</p>
+    <p data-i18n="project.overview_p2">By integrating MLOps principles — including automated data pipelines, continuous model training, and deployment workflows — the proposed system ensures reproducibility, scalability, and practical applicability in real-world oceanographic contexts.</p>
+  </div>
+</div>
+
+<!-- HIGHLIGHTS -->
+<div class="content-section reveal">
+  <div class="section-label" data-i18n="project.highlights_label">Key Points</div>
+  <div class="section-title" data-i18n="project.highlights_title">Research Highlights</div>
+  <div class="highlight-grid">
+    <div class="highlight-card">
+      <div class="highlight-icon">🔄</div>
+      <div class="highlight-value">MLOps</div>
+      <div class="highlight-desc" data-i18n="project.hl1">End-to-end automated ML pipeline</div>
+    </div>
+    <div class="highlight-card">
+      <div class="highlight-icon">🌊</div>
+      <div class="highlight-value" data-i18n="project.hl2_val">Ocean Data</div>
+      <div class="highlight-desc" data-i18n="project.hl2">Real-world oceanographic datasets</div>
+    </div>
+    <div class="highlight-card">
+      <div class="highlight-icon">📊</div>
+      <div class="highlight-value">MLOps</div>
+      <div class="highlight-desc" data-i18n="project.hl3">Published in a top-tier journal</div>
+    </div>
+    <div class="highlight-card">
+      <div class="highlight-icon">⚙️</div>
+      <div class="highlight-value">CI/CD</div>
+      <div class="highlight-desc" data-i18n="project.hl4">Continuous integration & deployment</div>
+    </div>
+  </div>
+</div>
+
+<!-- PUBLICATION DETAILS -->
+<div class="content-section reveal">
+  <div class="section-label" data-i18n="project.details_label">Publication</div>
+  <div class="section-title" data-i18n="project.details_title">Citation Details</div>
+  <div class="info-grid">
+    <div class="info-card">
+      <span class="info-card-label" data-i18n="project.journal_label">Journal</span>
+      <span class="info-card-value">Future Generation Computer Systems</span>
+    </div>
+    <div class="info-card">
+      <span class="info-card-label" data-i18n="project.volume">Volume</span>
+      <span class="info-card-value">Vol. 1, No. 1, pp. 1–20</span>
+    </div>
+    <div class="info-card">
+      <span class="info-card-label" data-i18n="project.year_label">Year</span>
+      <span class="info-card-value">2026</span>
+    </div>
+    <div class="info-card">
+      <span class="info-card-label">DOI</span>
+      <span class="info-card-value"><a href="https://doi.org/10.1016/j.future.2026.108502" target="_blank" rel="noopener">10.1016/j.future.2026.108502</a></span>
+    </div>
+    <div class="info-card">
+      <span class="info-card-label" data-i18n="project.index_label">Indexes</span>
+      <span class="info-card-value">SCI-Expanded, Scopus, Compendex, INSPEC, zbMATH</span>
+    </div>
+    <div class="info-card">
+      <span class="info-card-label" data-i18n="project.pages">Pages</span>
+      <span class="info-card-value">1 – 20</span>
+    </div>
+  </div>
+
+  <a class="bottom-back" href="../../index.html#projects">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    <span data-i18n="nav.back">Back to Projects</span>
+  </a>
+</div>
+
+<!-- FOOTER -->
+<div class="project-footer-bar">
+  <a href="../../index.html">AI Research Lab</a> — Bursa Uludağ University
+</div>
+
+<!-- ════════════ JAVASCRIPT ════════════ -->
+<script>
+
+const i18n = {
+  en: {
+    "nav.back": "Back to Projects",
+    "project.type": "SCI-Expanded Journal Paper",
+    "project.title": "MLOps-Driven Prediction of Ocean Oxygen Saturation: Design and Practical Implementation",
+    "project.journal_label": "Journal",
+    "project.year_label": "Year",
+    "project.index_label": "Indexed In",
+    "project.authors_label": "Authors",
+    "project.authors_title": "Research Team",
+    "project.overview_label": "Overview",
+    "project.overview_title": "About This Research",
+    "project.overview_p1": "This study presents a comprehensive MLOps-driven framework for predicting ocean oxygen saturation levels using machine learning. The research addresses the critical need for accurate and automated environmental monitoring systems in marine ecosystems.",
+    "project.overview_p2": "By integrating MLOps principles — including automated data pipelines, continuous model training, and deployment workflows — the proposed system ensures reproducibility, scalability, and practical applicability in real-world oceanographic contexts.",
+    "project.highlights_label": "Key Points",
+    "project.highlights_title": "Research Highlights",
+    "project.hl1": "End-to-end automated ML pipeline",
+    "project.hl2_val": "Ocean Data",
+    "project.hl2": "Real-world oceanographic datasets",
+    "project.hl3": "Published in a top-tier journal",
+    "project.hl4": "Continuous integration & deployment",
+    "project.details_label": "Publication",
+    "project.details_title": "Citation Details",
+    "project.volume": "Volume",
+    "project.pages": "Pages",
+  },
+  tr: {
+    "nav.back": "Projelere Dön",
+    "project.type": "SCI-Expanded Dergi Makalesi",
+    "project.title": "MLOps Odaklı Okyanus Oksijen Doygunluğu Tahmini: Tasarım ve Pratik Uygulama",
+    "project.journal_label": "Dergi",
+    "project.year_label": "Yıl",
+    "project.index_label": "İndeksler",
+    "project.authors_label": "Yazarlar",
+    "project.authors_title": "Araştırma Ekibi",
+    "project.overview_label": "Genel Bakış",
+    "project.overview_title": "Bu Araştırma Hakkında",
+    "project.overview_p1": "Bu çalışma, makine öğrenmesi kullanarak okyanus oksijen doygunluk seviyelerini tahmin etmek için kapsamlı bir MLOps odaklı çerçeve sunmaktadır. Araştırma, deniz ekosistemlerinde doğru ve otomatik çevresel izleme sistemlerine olan kritik ihtiyacı ele almaktadır.",
+    "project.overview_p2": "Otomatik veri boru hatları, sürekli model eğitimi ve dağıtım iş akışları dahil olmak üzere MLOps prensiplerini entegre ederek, önerilen sistem gerçek dünya oşinografik bağlamlarında tekrar üretilebilirlik, ölçeklenebilirlik ve pratik uygulanabilirlik sağlamaktadır.",
+    "project.highlights_label": "Öne Çıkanlar",
+    "project.highlights_title": "Araştırma Öne Çıkanları",
+    "project.hl1": "Uçtan uca otomatik ML boru hattı",
+    "project.hl2_val": "Okyanus Verisi",
+    "project.hl2": "Gerçek dünya oşinografik veri setleri",
+    "project.hl3": "Üst düzey dergide yayınlanmış",
+    "project.hl4": "Sürekli entegrasyon ve dağıtım",
+    "project.details_label": "Yayın",
+    "project.details_title": "Atıf Bilgileri",
+    "project.volume": "Cilt",
+    "project.pages": "Sayfalar",
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang][key] !== undefined) el.textContent = i18n[lang][key];
+  });
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    const isEN = btn.id === 'btnEN';
+    btn.classList.toggle('active', (lang === 'en' && isEN) || (lang === 'tr' && !isEN));
+  });
+}
+setLang(currentLang);
+
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.10 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+</script>
+</body>
+</html>

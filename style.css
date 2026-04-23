@@ -1,0 +1,43 @@
+/* ═══════════════════════════════════════════════════════════════
+   UAIRL — Ortak Tasarım Değerleri (Design Tokens)
+   ───────────────────────────────────────────────────────────────
+   Renk, yazı boyutu ve temel stiller burada tanımlanır.
+   Tüm sayfalarda geçerlidir. Değiştirmek için sadece bu dosyayı düzenleyin.
+   ═══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* ── Renkler ──────────────────────────────────────── */
+  --navy:     #0d1b2a;   /* Koyu lacivert — başlıklar, nav, footer */
+  --blue:     #1a73e8;   /* Ana vurgu rengi */
+  --blue-lt:  #e8f1fd;   /* Açık mavi arka plan */
+  --teal:     #00b89c;   /* İkincil vurgu */
+  --teal-lt:  #e6f8f5;   /* Açık teal arka plan */
+
+  --text:     #0d1b2a;   /* Ana yazı rengi */
+  --muted:    #445666;   /* İkincil yazı rengi — koyu tutmak okunurluğu artırır */
+  --border:   #c6d0de;   /* Kenarlık rengi */
+  --bg:       #f0f3f8;   /* Sayfa arka planı */
+  --white:    #ffffff;
+
+  /* ── Şekil ───────────────────────────────────────── */
+  --radius: 4px;         /* Köşe yuvarlaklığı — 0 = tam keskin, 8 = yumuşak */
+
+  /* ── Yazı Tipleri ────────────────────────────────── */
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+
+  /* ── Düzen ───────────────────────────────────────── */
+  --max-w: 1100px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  font-size: 17px;       /* ← Ana yazı boyutu — buradan tüm sayfayı büyütebilirsin */
+  line-height: 1.75;
+}
